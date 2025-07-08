@@ -1,4 +1,3 @@
-#Setup the class of a generic neuron
 class Neuron:
     def __init__(self, weights, bias, inputs, 
                  activationFunction, activationFunctionDerivative, 
@@ -17,12 +16,7 @@ class Neuron:
         self.learningRate = learningRate
     
     def computeWeightedSum(self):
-        weightedSum = 0
-        for i in range(len(self.weights)):
-            weightedSum += (self.weights[i] * self.inputs[i])
-
-        weightedSum += self.bias
-        return weightedSum
+        return sum(self.weights[i] * self.inputs[i] for i in range(len(self.weights))) + self.bias
     
     def applyActivationFunction(self, z):
         return self.activationFunction(z)
@@ -39,8 +33,8 @@ class Neuron:
     def combineForErrorSignals(self, lossFunctionDerivative, activationFunctionDerivative):
         return (lossFunctionDerivative * activationFunctionDerivative)
     
-    def computeWeightGradient(self, delta, weight):
-        return (delta * weight)
+    def computeWeightGradient(self, delta, input):
+        return (delta * input)
 
     def computeBiasGradient(self, delta):
         return delta
@@ -52,18 +46,26 @@ class Neuron:
         return (self.bias - (self.learningRate * biasGradient))
 
     def feedForward(self):
-        self.weightedSum = self.computeWeightedSum()
-        self.actualOutput = self.applyActivationFunction(self.weightedSum)
+        weightedSum = self.computeWeightedSum()
+        actualOutput = self.applyActivationFunction(weightedSum)
 
-    def backPropogation(self):
-        lossFunctionDerivative = self.computeLossFunctionDerivative()
-        activationFunctionDerivative = self.applyActivationFunctionDerivative()
+        return weightedSum, actualOutput
+
+    def backPropogation(self, weightedSum, actualOutput, desiredOutput):
+        lossFunctionDerivative = self.computeLossFunctionDerivative(actualOutput, desiredOutput)
+        activationFunctionDerivative = self.applyActivationFunctionDerivative(weightedSum)
 
         delta = self.combineForErrorSignals(lossFunctionDerivative, activationFunctionDerivative)
 
-        weightGradients = [self.computeWeightGradient(delta, weight) for weight in self.weights]
-        biasGradient = self.computeBiasGradient(delta, self.bias)
+        weightGradients = [self.computeWeightGradient(delta, input) for input in self.inputs]
+        biasGradient = self.computeBiasGradient(delta)
 
-        newWeights = self.updateWeights(weightGradients)
-        newBias = self.updateBias(biasGradient)
+        self.weights = self.updateWeights(weightGradients)
+        self.bias = self.updateBias(biasGradient)
+
+
+
+
+
+
 
